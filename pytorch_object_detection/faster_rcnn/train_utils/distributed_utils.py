@@ -142,17 +142,17 @@ def reduce_dict(input_dict, average=True):
         return reduced_dict
 
 
-class MetricLogger(object):
+class MetricLogger(object): # 这个类不仅可以用来追踪所有的指标，自带平滑功能，而且还内置迭代器，能够完成计时等等功能。
     def __init__(self, delimiter="\t"):
-        self.meters = defaultdict(SmoothedValue)
-        self.delimiter = delimiter
+        self.meters = defaultdict(SmoothedValue) # defaultdict将默认字典内的value变为SmoothedValue对象
+        self.delimiter = delimiter # 分隔符，这是配合字符串的join()方法使用的，默认为\t
 
     def update(self, **kwargs):
         for k, v in kwargs.items():
             if isinstance(v, torch.Tensor):
                 v = v.item()
             assert isinstance(v, (float, int))
-            self.meters[k].update(v)
+            self.meters[k].update(v) # 将meters内部对应的key更新其value。这里的updata是SmootheValue中的updata
 
     def __getattr__(self, attr):
         if attr in self.meters:
@@ -164,17 +164,18 @@ class MetricLogger(object):
 
     def __str__(self):
         loss_str = []
-        for name, meter in self.meters.items():
+        for name, meter in self.meters.items(): # 以key-value的形式遍历meters字典
+            # 按照"{}: {}".format(name, str(meter))的格式来生成字符串，例如loss: 0.6132
             loss_str.append(
-                "{}: {}".format(name, str(meter))
-            )
-        return self.delimiter.join(loss_str)
+                "{}: {}".format(name, str(meter)) 
+            ) 
+        return self.delimiter.join(loss_str) # 使用join()方法来生成一个用delimiter（/t）来分隔的字符串
 
-    def synchronize_between_processes(self):
+    def synchronize_between_processes(self): # 读取所有meters字典里面的值(SmoothedValue)，并调用它们的synchronize_between_processes()方法来进行同步
         for meter in self.meters.values():
             meter.synchronize_between_processes()
 
-    def add_meter(self, name, meter):
+    def add_meter(self, name, meter): # 在字典中创建一个key为name，value为meter的key-value对，一般调用的时候meter传入SmoothedValue。
         self.meters[name] = meter
 
     def log_every(self, iterable, print_freq, header=None):
