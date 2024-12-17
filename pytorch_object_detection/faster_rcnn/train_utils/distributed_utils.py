@@ -17,25 +17,26 @@ class SmoothedValue(object):
         if fmt is None:
             fmt = "{value:.4f} ({global_avg:.4f})"
         self.deque = deque(maxlen=window_size)  # deque简单理解成加强版list。可以在左边和右边加值。设置maxlen后是一个有界的list，如果往满编的list中再append元素，对面的元素会移除
-        self.total = 0.0
-        self.count = 0
-        self.fmt = fmt
+        self.total = 0.0 # 记录所有值的和
+        self.count = 0 # 目前看到了多少个值
+        self.fmt = fmt  # 字符串输出的格式
 
-    def update(self, value, n=1):
-        self.deque.append(value)
-        self.count += n
-        self.total += value * n
+    def update(self, value, n=1):  # 例如 value.update(acc1.item(), n=batch_size)  这样可以得到这个batch总和的acc1值(去除平均)，方便后面算全局平均。
+        self.deque.append(value) # 将值加入列表中
+        self.count += n # 更新count
+        self.total += value * n  # 更新 total
 
-    def synchronize_between_processes(self):
+    def synchronize_between_processes(self): # 用来在分布式训练时同步不同进程间的值
         """
         Warning: does not synchronize the deque!
         """
-        if not is_dist_avail_and_initialized():
+        if not is_dist_avail_and_initialized(): # 判断是不是在进行分布式训练，如果不是就直接返回
             return
-        t = torch.tensor([self.count, self.total], dtype=torch.float64, device="cuda")
+        t = torch.tensor([self.count, self.total], dtype=torch.float64, device="cuda") # 将count，total转tensor来使用分布式训练
         dist.barrier()
-        dist.all_reduce(t)
-        t = t.tolist()
+        dist.all_reduce(t) # 让所有进程的count和total都得到最终结果
+        t = t.tolist() # 转回list
+        # 更新self里的count和total
         self.count = int(t[0])
         self.total = t[1]
 
