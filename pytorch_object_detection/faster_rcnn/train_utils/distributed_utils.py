@@ -16,7 +16,7 @@ class SmoothedValue(object):
     def __init__(self, window_size=20, fmt=None):
         if fmt is None:
             fmt = "{value:.4f} ({global_avg:.4f})"
-        self.deque = deque(maxlen=window_size)  # deque简单理解成加强版list
+        self.deque = deque(maxlen=window_size)  # deque简单理解成加强版list。可以在左边和右边加值。设置maxlen后是一个有界的list，如果往满编的list中再append元素，对面的元素会移除
         self.total = 0.0
         self.count = 0
         self.fmt = fmt
