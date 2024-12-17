@@ -40,29 +40,29 @@ class SmoothedValue(object):
         self.count = int(t[0])
         self.total = t[1]
 
-    @property
-    def median(self):  # @property 是装饰器，这里可简单理解为增加median属性(只读)
+    @property # @property 是装饰器，这里可简单理解为增加median属性(只读)
+    def median(self):   # 计算中位数
         d = torch.tensor(list(self.deque))
         return d.median().item()
 
     @property
-    def avg(self):
+    def avg(self): # 计算平均值
         d = torch.tensor(list(self.deque), dtype=torch.float32)
         return d.mean().item()
 
     @property
-    def global_avg(self):
+    def global_avg(self):  # 计算总体平均数
         return self.total / self.count
 
     @property
-    def max(self):
+    def max(self): # 计算最大值
         return max(self.deque)
 
     @property
-    def value(self):
+    def value(self):  # 取最新的数值
         return self.deque[-1]
 
-    def __str__(self):
+    def __str__(self):  # 用format格式化字符串输出
         return self.fmt.format(
             median=self.median,
             avg=self.avg,
