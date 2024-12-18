@@ -33,6 +33,7 @@ def main(img_size=512, n=9, thr=0.25, gen=1000):
         print(f'WARNING: Extremely small objects found. {i} of {len(wh0)} labels are < 3 pixels in size.')
     wh = wh0[(wh0 >= 2.0).any(1)]  # 只保留wh都大于等于2个像素的box
 
+    # 原论文实现的是注释部分的欧式距离聚类，并在后面应用遗传算法升级了一下
     # Kmeans calculation
     # print(f'Running kmeans for {n} anchors on {len(wh)} points...')
     # s = wh.std(0)  # sigmas for whitening
