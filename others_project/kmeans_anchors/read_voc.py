@@ -67,7 +67,7 @@ class VOCDataSet(object):
                 xmax = float(obj["bndbox"]["xmax"])
                 ymin = float(obj["bndbox"]["ymin"])
                 ymax = float(obj["bndbox"]["ymax"])
-                wh.append([(xmax - xmin) / im_width, (ymax - ymin) / im_height])
+                wh.append([(xmax - xmin) / im_width, (ymax - ymin) / im_height])  # 得到相对大小的标注框大小（后面keams时需要用，如果是绝对大小，聚类效果会比较差）
 
             if len(wh) == 0:
                 continue
