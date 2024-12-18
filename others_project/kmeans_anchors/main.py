@@ -16,7 +16,7 @@ def anchor_fitness(k: np.ndarray, wh: np.ndarray, thr: float):  # mutation fitne
     bpr = (best > thr).astype(np.float32).mean()  # 满足阈值的标注框所占比例
     return f, bpr
 
-
+# 注意：使用别人的预训练权重时，不要冻结太多的权重。因为别人的权重是基于别人的数据集所聚类生成的anchor的，这个anchor与你的数据集不大可能适配
 def main(img_size=512, n=9, thr=0.25, gen=1000):
     # 从数据集中读取所有图片的wh以及对应bboxes的wh
     dataset = VOCDataSet(voc_root="/data", year="2012", txt_name="train.txt")
@@ -24,7 +24,9 @@ def main(img_size=512, n=9, thr=0.25, gen=1000):
 
     # 最大边缩放到img_size
     im_wh = np.array(im_wh, dtype=np.float32)
-    shapes = img_size * im_wh / im_wh.max(1, keepdims=True) # 输入图像都缩放到512*512，再乘相对图像大小的标注框，而不是绝对大小的标注框。这样聚类的效果会更好，而不是
+    # 注意：输入图像都缩放到512*512，再乘相对图像大小的标注框（即anchor也要同时缩放），而不是绝对大小的标注框。这样聚类的效果会更好，而不是绝对大小的标注框。
+    # 如果输入是随机大小的图片，就预处理中的随机缩放修改图片和anchors就可以
+    shapes = img_size * im_wh / im_wh.max(1, keepdims=True) 
     wh0 = np.concatenate([l * s for s, l in zip(shapes, boxes_wh)])  # 绝对大小的wh。 这里的s是每张图，l是每张图里所有的标注框大小（相对），s*l就变为绝对大小
 
     # Filter 过滤掉小目标
