@@ -33,7 +33,7 @@ def main(img_size=512, n=9, thr=0.25, gen=1000):
         print(f'WARNING: Extremely small objects found. {i} of {len(wh0)} labels are < 3 pixels in size.')
     wh = wh0[(wh0 >= 2.0).any(1)]  # 只保留wh都大于等于2个像素的box
 
-    # 原论文实现的是注释部分的欧式距离聚类，并在后面应用遗传算法升级了一下
+    # 原论文实现的是注释部分的欧式距离聚类，并在后面应用遗传算法看能否得到更好的结果
     # Kmeans calculation
     # print(f'Running kmeans for {n} anchors on {len(wh)} points...')
     # s = wh.std(0)  # 原文使用的是scipy中的kmeans方法，需要除以一个标准差再传入方法
@@ -51,19 +51,24 @@ def main(img_size=512, n=9, thr=0.25, gen=1000):
     # Evolve
     # 遗传算法(在kmeans的结果基础上变异mutation)
     npr = np.random
-    f, sh, mp, s = anchor_fitness(k, wh, thr)[0], k.shape, 0.9, 0.1  # fitness, generations, mutation prob, sigma
+    f, sh, mp, s = anchor_fitness(k, wh, thr)[0], k.shape, 0.9, 0.1  # 适应度, anchors的shape, 变异比例, sigma
     pbar = tqdm(range(gen), desc=f'Evolving anchors with Genetic Algorithm:')  # progress bar
-    for _ in pbar:
-        v = np.ones(sh)
+    for _ in pbar: # 迭代gen次
+        v = np.ones(sh) # v.shape = [9,2],9是anchor个数，2是anchor的长宽
         while (v == 1).all():  # mutate until a change occurs (prevent duplicates)
+            # npr.random(sh) 创建一个shape为sh的随机数，每个随机数都是【0,1】之间
+            # (npr.random(sh) < mp 找到小于0.9的数值，也就是以90%的比例选取基因，被选中的为1，没被选中的为0。然后对被选中的进行变异
+            # npr.randn(*sh) * s 正态分布随机数 * sigma   这里通过sigma调整正态分布结果
+            # +1 调整成为均值为1的正态分布
+            # .clip(0.3, 3.0) 将数值设置上下限
             v = ((npr.random(sh) < mp) * random.random() * npr.randn(*sh) * s + 1).clip(0.3, 3.0)
-        kg = (k.copy() * v).clip(min=2.0)
-        fg, bpr = anchor_fitness(kg, wh, thr)
-        if fg > f:
+        kg = (k.copy() * v).clip(min=2.0)  # 得到变异后的anchors
+        fg, bpr = anchor_fitness(kg, wh, thr) # 重新计算适应度
+        if fg > f: # 如果大于原来的适应度，就替换原来的
             f, k = fg, kg.copy()
             pbar.desc = f'Evolving anchors with Genetic Algorithm: fitness = {f:.4f}'
 
-    # 按面积排序
+    # 将变异后的按面积排序
     k = k[np.argsort(k.prod(1))]  # sort small to large
     print("genetic: " + " ".join([f"[{int(i[0])}, {int(i[1])}]" for i in k]))
     print(f"fitness: {f:.5f}, best possible recall: {bpr:.5f}")
