@@ -180,21 +180,25 @@ class MetricLogger(object): # 这个类不仅可以用来追踪所有的指标�
 
     def log_every(self, iterable, print_freq, header=None):
         i = 0
-        if not header:
-            header = ""
+        if not header: # 如果没有传header参数，则默认为空字符串
+            header = "" 
         start_time = time.time()
         end = time.time()
+        # 创建两个SmoothedValue类来记录迭代时间和数据读取时间
+        # 仅返回四位小数的平均值
         iter_time = SmoothedValue(fmt='{avg:.4f}')
         data_time = SmoothedValue(fmt='{avg:.4f}')
+        # 创建空格分隔符，用来在打印的时候对齐
         space_fmt = ":" + str(len(str(len(iterable)))) + "d"
+        # 将要打印的信息放入列表，使用分隔符分隔这些信息
         if torch.cuda.is_available():
             log_msg = self.delimiter.join([header,
-                                           '[{0' + space_fmt + '}/{1}]',
-                                           'eta: {eta}',
-                                           '{meters}',
-                                           'time: {time}',
-                                           'data: {data}',
-                                           'max mem: {memory:.0f}'])
+                                           '[{0' + space_fmt + '}/{1}]', # 会被替换为目前所在的迭代次数与总迭代次数
+                                           'eta: {eta}', # 剩余时间
+                                           '{meters}', # 各种指标
+                                           'time: {time}', # 迭代时间
+                                           'data: {data}', # 数据读取时间
+                                           'max mem: {memory:.0f}']) # 如果有cuda，那么列表多一项最大内存占用
         else:
             log_msg = self.delimiter.join([header,
                                            '[{0' + space_fmt + '}/{1}]',
@@ -202,31 +206,33 @@ class MetricLogger(object): # 这个类不仅可以用来追踪所有的指标�
                                            '{meters}',
                                            'time: {time}',
                                            'data: {data}'])
-        MB = 1024.0 * 1024.0
+        MB = 1024.0 * 1024.0 # 计算一个常数
         for obj in iterable:
-            data_time.update(time.time() - end)
-            yield obj
-            iter_time.update(time.time() - end)
-            if i % print_freq == 0 or i == len(iterable) - 1:
-                eta_second = iter_time.global_avg * (len(iterable) - i)
-                eta_string = str(datetime.timedelta(seconds=eta_second))
-                if torch.cuda.is_available():
+            data_time.update(time.time() - end)  # 更新obj从iterable拿出来的时间
+            yield obj  # 生成obj返回到调用的迭代器那里
+            iter_time.update(time.time() - end)   # 更新外循环处理obj用的时间
+            # 如果在打印频率上，或者是最后一个循环
+            if i % print_freq == 0 or i == len(iterable) - 1: 
+                eta_second = iter_time.global_avg * (len(iterable) - i)  # 估算剩余时间
+                eta_string = str(datetime.timedelta(seconds=eta_second)) # 格式化剩余时间，将秒转为"h:m:s"
+                if torch.cuda.is_available(): # 如果在用cuda训练
                     print(log_msg.format(i, len(iterable),
                                          eta=eta_string,
                                          meters=str(self),
                                          time=str(iter_time),
                                          data=str(data_time),
-                                         memory=torch.cuda.max_memory_allocated() / MB))
-                else:
+                                         memory=torch.cuda.max_memory_allocated() / MB))  # 打印显存占用
+                else: # 不使用cuda就不打印显存占用
                     print(log_msg.format(i, len(iterable),
                                          eta=eta_string,
                                          meters=str(self),
                                          time=str(iter_time),
                                          data=str(data_time)))
             i += 1
-            end = time.time()
-        total_time = time.time() - start_time
-        total_time_str = str(datetime.timedelta(seconds=int(total_time)))
+            end = time.time() # 更新一个迭代完成后的时间点
+        total_time = time.time() - start_time # 总花费时间是现在的时间减去最开始记录的时间
+        total_time_str = str(datetime.timedelta(seconds=int(total_time))) # 秒转化为"h:m:s"
+        # 格式化输出总时间，以及平均每个obj消耗的时间
         print('{} Total time: {} ({:.4f} s / it)'.format(header,
                                                          total_time_str,
 
