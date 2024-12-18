@@ -23,7 +23,7 @@ class VOCDataSet(Dataset):
         # read train.txt or val.txt file
         txt_path = os.path.join(self.root, "ImageSets", "Main", txt_name)
         assert os.path.exists(txt_path), "not found {} file.".format(txt_name)
-
+        # 将标注信息转为xml格式
         with open(txt_path) as read:
             xml_list = [os.path.join(self.annotations_root, line.strip() + ".xml")
                         for line in read.readlines() if len(line.strip()) > 0]
@@ -38,8 +38,8 @@ class VOCDataSet(Dataset):
             # check for targets
             with open(xml_path) as fid:
                 xml_str = fid.read()
-            xml = etree.fromstring(xml_str)
-            data = self.parse_xml_to_dict(xml)["annotation"]
+            xml = etree.fromstring(xml_str) # etree.fromstring 将一个包含XML标签和元素的字符串转换为一个树形结构，方便对其进行操作和处理‌
+            data = self.parse_xml_to_dict(xml)["annotation"] # 将xml文件解析成字典形式
             if "object" not in data:
                 print(f"INFO: no objects in {xml_path}, skip this annotation file.")
                 continue
@@ -48,7 +48,7 @@ class VOCDataSet(Dataset):
 
         assert len(self.xml_list) > 0, "in '{}' file does not find any information.".format(txt_path)
 
-        # read class_indict
+        # 载入分类json文件
         json_file = './pascal_voc_classes.json'
         assert os.path.exists(json_file), "{} file not exist.".format(json_file)
         with open(json_file, 'r') as f:
@@ -59,7 +59,7 @@ class VOCDataSet(Dataset):
     def __len__(self):
         return len(self.xml_list)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx): # 获取传入idx对应图片及其标注信息
         # read xml
         xml_path = self.xml_list[idx]
         with open(xml_path) as fid:
@@ -70,7 +70,8 @@ class VOCDataSet(Dataset):
         image = Image.open(img_path)
         if image.format != "JPEG":
             raise ValueError("Image '{}' format not JPEG".format(img_path))
-
+            
+        # 获取传入图像的boxes,labels以及是否难检测信息
         boxes = []
         labels = []
         iscrowd = []
@@ -93,20 +94,20 @@ class VOCDataSet(Dataset):
             else:
                 iscrowd.append(0)
 
-        # convert everything into a torch.Tensor
+        # 转tensor后封装进target字典
         boxes = torch.as_tensor(boxes, dtype=torch.float32)
         labels = torch.as_tensor(labels, dtype=torch.int64)
         iscrowd = torch.as_tensor(iscrowd, dtype=torch.int64)
         image_id = torch.tensor([idx])
         area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
-
+        
         target = {}
         target["boxes"] = boxes
         target["labels"] = labels
         target["image_id"] = image_id
         target["area"] = area
         target["iscrowd"] = iscrowd
-
+        # 对图片进行预处理
         if self.transforms is not None:
             image, target = self.transforms(image, target)
 
