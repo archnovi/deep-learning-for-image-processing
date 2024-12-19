@@ -35,10 +35,10 @@ class AlexNet(nn.Module):
     def forward(self, x):
         outputs = []
         for name, module in self.features.named_children():
-            x = module(x)
+            x = module(x) 
             if name in ["0", "3", "6"]:
                 outputs.append(x)
-
+        # 注意：如果想查看classifier中的linear，还是需要将图片传入到features中，再传入linear。不能跳过feature直接传入到linear
         return outputs
 
     def _initialize_weights(self):
