@@ -25,7 +25,8 @@ def main():
                                    transforms.CenterCrop(224),
                                    transforms.ToTensor(),
                                    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])}
-
+    
+    # 使用torch提供的ImageFloder方法存在局限性，比如图片不是rgb格式，或者需要传入多个图的情况，会存在不适配。所以需要自定义数据集
     train_data_set = MyDataSet(images_path=train_images_path,
                                images_class=train_images_label,
                                transform=data_transform["train"])
