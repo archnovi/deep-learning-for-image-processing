@@ -36,7 +36,9 @@ img = torch.unsqueeze(img, dim=0)
 out_put = model(img)
 for feature_map in out_put:
     # [N, C, H, W] -> [C, H, W]
-    im = np.squeeze(feature_map.detach().numpy())
+    # .detach() 返回一个新的Variable，从当前计算图中分离下来的，但是仍指向原变量的存放位置。将指定参数的requires_grad设为false，不更新其权重。
+    # .detach_() 返回一个新的Variable，从当前计算图中分离下来的，但不指向原变量的存放位置。如果后悔无法撤回。将指定参数的requires_grad设为false，不更新其权重。
+    im = np.squeeze(feature_map.detach().numpy()) 
     # [C, H, W] -> [H, W, C]
     im = np.transpose(im, [1, 2, 0])
 
