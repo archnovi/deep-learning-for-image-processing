@@ -37,8 +37,8 @@ def main():
     train_loader = torch.utils.data.DataLoader(train_data_set,
                                                batch_size=batch_size,
                                                shuffle=True,
-                                               num_workers=nw,
-                                               collate_fn=train_data_set.collate_fn)
+                                               num_workers=nw, # nw train时可以直接设为nw，val时最好先设为0，不然可能会有问题
+                                               collate_fn=train_data_set.collate_fn)  # 按batch读取图片 
 
     # plot_data_loader_image(train_loader)
 
