@@ -15,8 +15,9 @@ class MyDataSet(Dataset):
         return len(self.images_path)
 
     def __getitem__(self, item):
-        img = Image.open(self.images_path[item])
+        img = Image.open(self.images_path[item])  # 最好是用plt的image读取图片，而不是cv2。因为pytorch里的预处理方法都是针对plt的image方法
         # RGB为彩色图片，L为灰度图片
+        # 如果数据集比较混乱，可以多设置几个检查图片格式
         if img.mode != 'RGB':
             raise ValueError("image: {} isn't RGB mode.".format(self.images_path[item]))
         label = self.images_class[item]
