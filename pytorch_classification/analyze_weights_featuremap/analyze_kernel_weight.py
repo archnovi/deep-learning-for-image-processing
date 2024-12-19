@@ -13,7 +13,7 @@ model_weight_path = "./AlexNet.pth"  # "resNet34.pth"
 model.load_state_dict(torch.load(model_weight_path))
 print(model)
 
-weights_keys = model.state_dict().keys()
+weights_keys = model.state_dict().keys() # 这里直接用load权重文件也可以得到字典形式的权重，不一定要载入到模型再提取
 for key in weights_keys:
     # remove num_batches_tracked para(in bn)
     if "num_batches_tracked" in key:
@@ -21,7 +21,7 @@ for key in weights_keys:
     # [kernel_number, kernel_channel, kernel_height, kernel_width]
     weight_t = model.state_dict()[key].numpy()
 
-    # read a kernel information
+    # 切片获取某个conv的权重
     # k = weight_t[0, :, :, :]
 
     # calculate mean, std, min, max
