@@ -163,7 +163,8 @@ class FastRCNNPredictor(nn.Module):
 
         return scores, bbox_deltas
 
-
+# 为什么要继承一个fasterrcnnbase：
+# 
 class FasterRCNN(FasterRCNNBase):
     """
     Implements Faster R-CNN.
