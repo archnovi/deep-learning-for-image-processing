@@ -27,6 +27,7 @@ def create_model(num_classes):
         print("missing_keys: ", missing_keys)
         print("unexpected_keys: ", unexpected_keys)
 
+    # 将fasterRCNN的预测器部分改为FastRCNNPredictor
     # get number of input features for the classifier
     in_features = model.roi_heads.box_predictor.cls_score.in_features
     # replace the pre-trained head with a new one
