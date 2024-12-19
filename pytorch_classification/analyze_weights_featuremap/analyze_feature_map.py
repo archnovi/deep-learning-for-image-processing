@@ -23,7 +23,7 @@ model = AlexNet(num_classes=5)
 # load model weights
 model_weight_path = "./AlexNet.pth"  # "./resNet34.pth"
 model.load_state_dict(torch.load(model_weight_path))
-print(model)
+print(model) # 打印模型层结构
 
 # load image
 img = Image.open("../tulip.jpg")
@@ -33,7 +33,7 @@ img = data_transform(img)
 img = torch.unsqueeze(img, dim=0)
 
 # forward
-out_put = model(img)
+out_put = model(img)  # 这里通过model中的正向传播，得到三个输出特征矩阵
 for feature_map in out_put:
     # [N, C, H, W] -> [C, H, W]
     # .detach() 返回一个新的Variable，从当前计算图中分离下来的，但是仍指向原变量的存放位置。将指定参数的requires_grad设为false，不更新其权重。
@@ -44,7 +44,7 @@ for feature_map in out_put:
 
     # show top 12 feature maps
     plt.figure()
-    for i in range(12):
+    for i in range(12): # 展示每个输出特征矩阵前12个channel特征图
         ax = plt.subplot(3, 4, i+1)
         # [H, W, C]
         plt.imshow(im[:, :, i], cmap='gray')
