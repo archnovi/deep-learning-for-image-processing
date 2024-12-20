@@ -101,9 +101,10 @@ class FasterRCNNBase(nn.Module):
         losses.update(detector_losses)
         losses.update(proposal_losses)
 
-        if torch.jit.is_scripting():
+        # TorchScript是PyTorch提供的一个工具，它可以将PyTorch模型转换成可以在没有Python解释器的环境中运行的脚本。这对于模型部署到生产环境特别有用，因为它可以提高模型的运行效率，并且减少模型对环境的依赖。
+        if torch.jit.is_scripting():  # 是否处于脚本化模式下
             if not self._has_warned:
-                warnings.warn("RCNN always returns a (Losses, Detections) tuple in scripting")
+                warnings.warn("RCNN always returns a (Losses, Detections) tuple in scripting") # '“在脚本化模式下，RCNN总是返回一个包含损失（Losses）和检测（Detections）的元组”'
                 self._has_warned = True
             return losses, detections
         else:
