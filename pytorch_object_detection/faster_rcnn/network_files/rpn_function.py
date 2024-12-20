@@ -192,17 +192,18 @@ class AnchorsGenerator(nn.Module):
         # 得到的是一个list列表，对应每张预测特征图映射回原图的anchors坐标信息
         anchors_over_all_feature_maps = self.cached_grid_anchors(grid_sizes, strides)
 
+        # 假设一个batch有5张图，每张图预测两个feature map， 每个feature map一共生成15个anchor 
         anchors = torch.jit.annotate(List[List[torch.Tensor]], [])
         # 遍历一个batch中的每张图像
         for i, (image_height, image_width) in enumerate(image_list.image_sizes):
-            anchors_in_image = []
+            anchors_in_image = []  # 5个[]
             # 遍历每张预测特征图映射回原图的anchors坐标信息
-            for anchors_per_feature_map in anchors_over_all_feature_maps:
-                anchors_in_image.append(anchors_per_feature_map)
-            anchors.append(anchors_in_image)
+            for anchors_per_feature_map in anchors_over_all_feature_maps: # anchors_over_all_feature_maps 
+                anchors_in_image.append(anchors_per_feature_map)  [2, 15]
+            anchors.append(anchors_in_image)  [5 ，2, 15]
         # 将每一张图像的所有预测特征层的anchors坐标信息拼接在一起
         # anchors是个list，每个元素为一张图像的所有anchors信息
-        anchors = [torch.cat(anchors_per_image) for anchors_per_image in anchors]
+        anchors = [torch.cat(anchors_per_image) for anchors_per_image in anchors] [30，30,30,30,30]
         # Clear the cache in case that memory leaks.
         self._cache.clear()
         return anchors
